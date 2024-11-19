@@ -60,7 +60,7 @@ func promptUserAction() UserAction {
 		"2": JOIN_ROOM,
 	}
 
-	choice := prompt.StringPrompt(
+	choice := prompt.StringInputPrompt(
 		"📚 Choose an option:\n\n    [1] Create a room\n    [2] Join a room\n\nType your choice (1 or 2):",
 	)
 
@@ -74,15 +74,13 @@ func promptUserAction() UserAction {
 func connectToEstimateXWebSocketEndpoint(action UserAction) error {
 	wsEndpoint := getWebSocketEndpoint()
 
-	fmt.Printf("%+v\n", wsEndpoint)
-
 	var err error
 	var wsConnection *websocket.Conn
 
 	if action == JOIN_ROOM {
-		wsConnection, err = handleJoinRoom(wsEndpoint)
+		wsConnection, err = handleJoinRoomAction(wsEndpoint)
 	} else if action == CREATE_ROOM {
-		// TODO: hande create room action
+		wsConnection, err = handleCreateRoomAction(wsEndpoint)
 	}
 
 	if err != nil {
@@ -111,10 +109,10 @@ func getWebSocketEndpoint() url.URL {
 	}
 }
 
-func handleJoinRoom(wsEndpoint url.URL) (*websocket.Conn, error) {
-	roomId := prompt.StringPrompt("> 📝 Enter the room id which you would like to join:")
+func handleJoinRoomAction(wsEndpoint url.URL) (*websocket.Conn, error) {
+	roomId := prompt.StringInputPrompt("> 📝 Enter the room id which you would like to join:")
 
-	clientName := prompt.StringPrompt("> 📝 Enter your name:")
+	clientName := prompt.StringInputPrompt("> 📝 Enter your name:")
 	if clientName == "" {
 		return nil, fmt.Errorf("❌ Empty client name is not allowed. Exiting program...")
 	}
@@ -127,6 +125,27 @@ func handleJoinRoom(wsEndpoint url.URL) (*websocket.Conn, error) {
 	}
 
 	// TODO: need to inform the server that a room join event has occurred
+	return wsConnection, nil
+}
+
+func handleCreateRoomAction(wsEndpoint url.URL) (*websocket.Conn, error) {
+	maxRoomCapacity, err := prompt.IntegerInputPrompt("> 📝 Enter the room max capacity:")
+	if err != nil {
+		return nil, fmt.Errorf("❌ You have entered an invalid numerical value for room max capacity. Exiting program...")
+	}
+
+	clientName := prompt.StringInputPrompt("> 📝 Enter your name:")
+	if clientName == "" {
+		return nil, fmt.Errorf("❌ Empty client name is not allowed. Exiting program...")
+	}
+
+	wsEndpoint.RawQuery = fmt.Sprintf("action=%s&name=%s&max_room_capacity=%d", CREATE_ROOM, url.QueryEscape(clientName), maxRoomCapacity)
+
+	wsConnection, err := establishWebSocketConnection(wsEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
 	return wsConnection, nil
 }
 
