@@ -7,6 +7,7 @@ import (
 	logger "log"
 
 	"github.com/common-nighthawk/go-figure"
+	"github.com/skamranahmed/estimatex-client/prompt"
 )
 
 // set this to true for development, keep it false for production
@@ -25,6 +26,12 @@ const (
 
 func main() {
 	displayWelcomeMessage()
+
+	action := promptUserAction()
+	if action == "" {
+		log.Println("❌ Exiting program due to invalid choice.")
+		return
+	}
 }
 
 func displayWelcomeMessage() {
@@ -37,4 +44,21 @@ func displayWelcomeMessage() {
 	}
 
 	fmt.Println("\n👋 Welcome! Use the tool to proceed. Press CTRL + C to exit when you're done.\n")
+}
+
+func promptUserAction() UserAction {
+	responseActionMap := map[string]UserAction{
+		"1": CREATE_ROOM,
+		"2": JOIN_ROOM,
+	}
+
+	choice := prompt.StringPrompt(
+		"📚 Choose an option:\n\n    [1] Create a room\n    [2] Join a room\n\nType your choice (1 or 2):",
+	)
+
+	action, ok := responseActionMap[choice]
+	if !ok {
+		return ""
+	}
+	return action
 }
