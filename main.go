@@ -9,6 +9,7 @@ import (
 
 	"github.com/common-nighthawk/go-figure"
 	"github.com/gorilla/websocket"
+	"github.com/skamranahmed/estimatex-client/event"
 	"github.com/skamranahmed/estimatex-client/prompt"
 )
 
@@ -124,7 +125,8 @@ func handleJoinRoomAction(wsEndpoint url.URL) (*websocket.Conn, error) {
 		return nil, err
 	}
 
-	// TODO: need to inform the server that a room join event has occurred
+	// inform the server that a room join event has occurred
+	event.SendRoomJoinEvent(wsConnection, roomId)
 	return wsConnection, nil
 }
 
