@@ -31,13 +31,13 @@ func main() {
 
 	action := promptUserAction()
 	if action == "" {
-		log.Printf("❌ Exiting program due to invalid choice.\n")
+		log.Println("❌ Exiting program due to invalid choice.")
 		return
 	}
 
 	err := connectToEstimateXWebSocketEndpoint(action)
 	if err != nil {
-		log.Printf("❌ Got an error while trying to connect to EstimateX endpoint: %v\n", err.Error())
+		log.Println(err.Error())
 		return
 	}
 }
@@ -80,8 +80,7 @@ func connectToEstimateXWebSocketEndpoint(action UserAction) error {
 	var wsConnection *websocket.Conn
 
 	if action == JOIN_ROOM {
-		// TODO: handle join room action
-
+		wsConnection, err = handleJoinRoom(wsEndpoint)
 	} else if action == CREATE_ROOM {
 		// TODO: hande create room action
 	}
@@ -110,6 +109,33 @@ func getWebSocketEndpoint() url.URL {
 		Host:   "",    // TODO: to be filled when I will get the production URL of EstimateX server after deployment
 		Path:   path,
 	}
+}
+
+func handleJoinRoom(wsEndpoint url.URL) (*websocket.Conn, error) {
+	roomId := prompt.StringPrompt("> 📝 Enter the room id which you would like to join:")
+
+	clientName := prompt.StringPrompt("> 📝 Enter your name:")
+	if clientName == "" {
+		return nil, fmt.Errorf("❌ Empty client name is not allowed. Exiting program...")
+	}
+
+	wsEndpoint.RawQuery = fmt.Sprintf("action=%s&name=%s&room_id=%s", JOIN_ROOM, url.QueryEscape(clientName), url.QueryEscape(roomId))
+
+	wsConnection, err := establishWebSocketConnection(wsEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: need to inform the server that a room join event has occurred
+	return wsConnection, nil
+}
+
+func establishWebSocketConnection(wsEndpoint url.URL) (*websocket.Conn, error) {
+	wsConnection, _, err := websocket.DefaultDialer.Dial(wsEndpoint.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("❌ Got an error while trying to connect to EstimateX endpoint: %v", err)
+	}
+	return wsConnection, nil
 }
 
 func closeWebSockeConnection(wsConnection *websocket.Conn) {
