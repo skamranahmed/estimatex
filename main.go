@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 
 	logger "log"
 
 	"github.com/common-nighthawk/go-figure"
+	"github.com/gorilla/websocket"
 	"github.com/skamranahmed/estimatex-client/prompt"
 )
 
@@ -29,7 +31,13 @@ func main() {
 
 	action := promptUserAction()
 	if action == "" {
-		log.Println("❌ Exiting program due to invalid choice.")
+		log.Printf("❌ Exiting program due to invalid choice.\n")
+		return
+	}
+
+	err := connectToEstimateXWebSocketEndpoint(action)
+	if err != nil {
+		log.Printf("❌ Got an error while trying to connect to EstimateX endpoint: %v\n", err.Error())
 		return
 	}
 }
@@ -61,4 +69,53 @@ func promptUserAction() UserAction {
 		return ""
 	}
 	return action
+}
+
+func connectToEstimateXWebSocketEndpoint(action UserAction) error {
+	wsEndpoint := getWebSocketEndpoint()
+
+	fmt.Printf("%+v\n", wsEndpoint)
+
+	var err error
+	var wsConnection *websocket.Conn
+
+	if action == JOIN_ROOM {
+		// TODO: handle join room action
+
+	} else if action == CREATE_ROOM {
+		// TODO: hande create room action
+	}
+
+	if err != nil {
+		return err
+	}
+
+	defer closeWebSockeConnection(wsConnection)
+
+	return nil
+}
+
+func getWebSocketEndpoint() url.URL {
+	path := "/ws"
+	if isDevelopment {
+		return url.URL{
+			Scheme: "ws",
+			Host:   "localhost:8080",
+			Path:   path,
+		}
+	}
+
+	return url.URL{
+		Scheme: "wss", // use websocket secure protocol in production
+		Host:   "",    // TODO: to be filled when I will get the production URL of EstimateX server after deployment
+		Path:   path,
+	}
+}
+
+func closeWebSockeConnection(wsConnection *websocket.Conn) {
+	if wsConnection != nil {
+		// gracefully close the WebSocket connection by sending a "Close Handshake" message from the client
+		wsConnection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "Client closing connection"))
+		wsConnection.Close()
+	}
 }
