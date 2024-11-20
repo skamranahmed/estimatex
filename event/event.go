@@ -16,3 +16,8 @@ type CreateRoomEventData struct {
 type RoomJoinEventData struct {
 	RoomID string `json:"room_id"`
 }
+
+// RoomJoinUpdatesEventData represents data specific to the "ROOM_JOIN_UPDATES" event
+type RoomJoinUpdatesEventData struct {
+	Message string `json:"message"`
+}

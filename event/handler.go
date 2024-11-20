@@ -3,7 +3,9 @@ package event
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"os"
+
+	logger "log"
 
 	"github.com/gorilla/websocket"
 )
@@ -11,6 +13,8 @@ import (
 type EventHandler func(wsConnection *websocket.Conn, event Event) error
 
 var (
+	log = logger.New(os.Stdout, "> ", 0) // 0 means no flags (no time, no date, etc.)
+
 	eventHandlers = make(map[string]EventHandler)
 )
 
@@ -21,6 +25,7 @@ func EventNotSupportedError(eventType string) error {
 // sets up event handlers to process various types of event messages received from the server
 func SetupEventHandlers() {
 	eventHandlers["CREATE_ROOM"] = CreateRoomEventHandler
+	eventHandlers["ROOM_JOIN_UPDATES"] = RoomJoinUpdatesEventHandler
 }
 
 func HandleEvent(wsConnection *websocket.Conn, event Event) error {
@@ -48,5 +53,19 @@ func CreateRoomEventHandler(wsConnection *websocket.Conn, event Event) error {
 	// we need to send the "JOIN_ROOM" event message to the server
 	SendRoomJoinEvent(wsConnection, roomCreationEventData.RoomID)
 
+	return nil
+}
+
+func RoomJoinUpdatesEventHandler(wsConnection *websocket.Conn, event Event) error {
+	var roomJoinUpdatesEventData RoomJoinUpdatesEventData
+	err := json.Unmarshal(event.Data, &roomJoinUpdatesEventData)
+	if err != nil {
+		log.Println("unable to handle ROOM_JOIN_UPDATES event", err)
+		return nil
+	}
+
+	// the "ROOM_JOIN_UPDATES" event message from the server will be plain text,
+	// hence, we will simply log it
+	log.Println(roomJoinUpdatesEventData.Message)
 	return nil
 }

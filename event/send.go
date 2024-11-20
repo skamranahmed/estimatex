@@ -2,7 +2,6 @@ package event
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/gorilla/websocket"
 )
