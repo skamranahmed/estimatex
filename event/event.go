@@ -36,3 +36,14 @@ type BeginVotingPromptEventData struct {
 type BeginVotingEventData struct {
 	TicketID string `json:"ticket_id"`
 }
+
+// AskForVoteEventData represents data specific to the "ASK_FOR_VOTE" event
+type AskForVoteEventData struct {
+	TicketID string `json:"ticket_id"`
+}
+
+// MemberVotedEventData represents data specific to the "MEMBER_VOTED" event
+type MemberVotedEventData struct {
+	TicketID string `json:"ticket_id"`
+	Vote     string `json:"vote"`
+}

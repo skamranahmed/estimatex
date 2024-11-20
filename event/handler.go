@@ -29,6 +29,7 @@ func SetupEventHandlers() {
 	eventHandlers["ROOM_JOIN_UPDATES"] = RoomJoinUpdatesEventHandler
 	eventHandlers["ROOM_CAPACITY_REACHED"] = RoomCapacityReachedEventHandler
 	eventHandlers["BEGIN_VOTING_PROMPT"] = BeginVotingPromptEventHandler
+	eventHandlers["ASK_FOR_VOTE"] = AskForVoteEventHandler
 }
 
 func HandleEvent(wsConnection *websocket.Conn, event Event) error {
@@ -105,5 +106,24 @@ func BeginVotingPromptEventHandler(wsConnection *websocket.Conn, event Event) er
 	}
 
 	SendBeginVotingEvent(wsConnection, ticketId)
+	return nil
+}
+
+func AskForVoteEventHandler(wsConnection *websocket.Conn, event Event) error {
+	var askForVoteEventData AskForVoteEventData
+	err := json.Unmarshal(event.Data, &askForVoteEventData)
+	if err != nil {
+		log.Println("unable to handle ASK_FOR_VOTE event", err)
+		return nil
+	}
+
+	askForVoteMessage := fmt.Sprintf(
+		"> 📝 Choose a story point for the ticket: %s\n\n    [1] 1\n    [2] 2\n    [3] 3\n    [5] 5\n    [8] 8\n    [13] 13\n    [21] 21\n\nType your choice (1 or 2 or 3 or 5 or 8 or 13 or 21):", askForVoteEventData.TicketID,
+	)
+	vote := prompt.StringInputPrompt(askForVoteMessage)
+
+	log.Printf("👍 You voted %v for the ticket id: %s\n", vote, askForVoteEventData.TicketID)
+
+	SendMemberVotedEvent(wsConnection, askForVoteEventData.TicketID, vote)
 	return nil
 }
