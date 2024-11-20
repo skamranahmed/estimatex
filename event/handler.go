@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 
 	logger "log"
 
 	"github.com/gorilla/websocket"
+	"github.com/olekukonko/tablewriter"
 	"github.com/skamranahmed/estimatex-client/prompt"
 )
 
@@ -32,6 +34,7 @@ func SetupEventHandlers() {
 	eventHandlers["ASK_FOR_VOTE"] = AskForVoteEventHandler
 	eventHandlers["VOTING_COMPLETED"] = VotingCompletedEventHandler
 	eventHandlers["REVEAL_VOTES_PROMPT"] = RevealVotesPromptEventHandler
+	eventHandlers["VOTES_REVEALED"] = VotesRevealedEventHandler
 }
 
 func HandleEvent(wsConnection *websocket.Conn, event Event) error {
@@ -161,4 +164,53 @@ func RevealVotesPromptEventHandler(wsConnection *websocket.Conn, event Event) er
 
 	SendRevealVotesEvent(wsConnection, revealVotesPromptEventData.TicketID)
 	return nil
+}
+
+func VotesRevealedEventHandler(serverWsConnection *websocket.Conn, event Event) error {
+	var votesRevealedEventData VotesRevealedEventData
+	err := json.Unmarshal(event.Data, &votesRevealedEventData)
+	if err != nil {
+		log.Println("unable to handle VOTES_REVEALED event", err)
+		return nil
+	}
+
+	// the "VOTES_REVEALED" event message from the server will be plain text,
+	// hence, we will simply log it and use it as the user prompt text
+	log.Printf("👇 Votes for the ticket id: %v", votesRevealedEventData.TicketID)
+
+	renderVotes(votesRevealedEventData.ClientVoteChoiceMap)
+	return nil
+}
+
+func renderVotes(voteChoiceMap map[string]Vote) {
+	grouped := make(map[string][]Vote)
+
+	for _, vote := range voteChoiceMap {
+		grouped[vote.Value] = append(grouped[vote.Value], vote)
+	}
+
+	var voteValues []string
+	for voteValue := range grouped {
+		voteValues = append(voteValues, voteValue)
+	}
+	sort.Strings(voteValues)
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Vote Value", "Member(s)", "Count"})
+
+	for _, voteValue := range voteValues {
+		votes := grouped[voteValue]
+		voteCount := fmt.Sprintf("%v", len(votes))
+		for index, vote := range votes {
+			clientName := voteChoiceMap[vote.MemberID].MemberName
+			if index == 0 {
+				table.Append([]string{voteValue, clientName, voteCount})
+			} else {
+				table.Append([]string{"", clientName, ""})
+			}
+		}
+		table.Append([]string{"", ""})
+	}
+
+	table.Render()
 }

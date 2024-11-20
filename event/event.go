@@ -7,6 +7,12 @@ type Event struct {
 	Data json.RawMessage `json:"data"`
 }
 
+type Vote struct {
+	Value      string
+	MemberID   string
+	MemberName string
+}
+
 // CreateRoomEventData represents data specific to the "CREATE_ROOM" event
 type CreateRoomEventData struct {
 	RoomID string `json:"room_id"`
@@ -63,4 +69,10 @@ type RevealVotesPromptEventData struct {
 // RevealVotesEventData represents data specific to the "REVEAL_VOTES" event
 type RevealVotesEventData struct {
 	TicketID string `json:"ticket_id"`
+}
+
+// VotesRevealedEventData represents data specific to the "VOTES_REVEALED" event
+type VotesRevealedEventData struct {
+	TicketID            string          `json:"ticket_id"`
+	ClientVoteChoiceMap map[string]Vote `json:"client_vote_choice_map"`
 }
