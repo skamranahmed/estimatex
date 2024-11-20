@@ -26,6 +26,7 @@ func EventNotSupportedError(eventType string) error {
 func SetupEventHandlers() {
 	eventHandlers["CREATE_ROOM"] = CreateRoomEventHandler
 	eventHandlers["ROOM_JOIN_UPDATES"] = RoomJoinUpdatesEventHandler
+	eventHandlers["ROOM_CAPACITY_REACHED"] = RoomCapacityReachedEventHandler
 }
 
 func HandleEvent(wsConnection *websocket.Conn, event Event) error {
@@ -67,5 +68,19 @@ func RoomJoinUpdatesEventHandler(wsConnection *websocket.Conn, event Event) erro
 	// the "ROOM_JOIN_UPDATES" event message from the server will be plain text,
 	// hence, we will simply log it
 	log.Println(roomJoinUpdatesEventData.Message)
+	return nil
+}
+
+func RoomCapacityReachedEventHandler(wsConnection *websocket.Conn, event Event) error {
+	var roomCapacityReachedEventData RoomCapacityReachedEventData
+	err := json.Unmarshal(event.Data, &roomCapacityReachedEventData)
+	if err != nil {
+		log.Println("unable to handle ROOM_CAPACITY_REACHED event", err)
+		return nil
+	}
+
+	// the "ROOM_CAPACITY_REACHED" event message from the server will be plain text,
+	// hence, we will simply log it
+	log.Println(roomCapacityReachedEventData.Message)
 	return nil
 }

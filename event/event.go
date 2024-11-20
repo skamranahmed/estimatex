@@ -21,3 +21,8 @@ type RoomJoinEventData struct {
 type RoomJoinUpdatesEventData struct {
 	Message string `json:"message"`
 }
+
+// RoomCapacityReachedEventData represents data specific to the "ROOM_CAPACITY_REACHED" event
+type RoomCapacityReachedEventData struct {
+	Message string `json:"message"`
+}
