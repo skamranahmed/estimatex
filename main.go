@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
+	"os/signal"
 
 	logger "log"
 
@@ -36,11 +38,24 @@ func main() {
 		return
 	}
 
-	err := connectToEstimateXWebSocketEndpoint(action)
+	wsConnection, err := connectToEstimateXWebSocketEndpoint(action)
 	if err != nil {
 		log.Println(err.Error())
 		return
 	}
+
+	defer closeWebSockeConnection(wsConnection)
+
+	// read messages from the server, spawning a go-routine for this, because it is blocking in nature
+	go readMessages(wsConnection)
+
+	// wait for interrupt signal from the user to exit the program
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+
+	<-interrupt
+	log.Println("👋 Exiting...")
+	os.Exit(0)
 }
 
 func displayWelcomeMessage() {
@@ -72,7 +87,7 @@ func promptUserAction() UserAction {
 	return action
 }
 
-func connectToEstimateXWebSocketEndpoint(action UserAction) error {
+func connectToEstimateXWebSocketEndpoint(action UserAction) (*websocket.Conn, error) {
 	wsEndpoint := getWebSocketEndpoint()
 
 	var err error
@@ -85,12 +100,48 @@ func connectToEstimateXWebSocketEndpoint(action UserAction) error {
 	}
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	return wsConnection, nil
+}
+
+func readMessages(wsConnection *websocket.Conn) {
 	defer closeWebSockeConnection(wsConnection)
 
-	return nil
+	// continuously read messages from the server
+	for {
+		_, payload, err := wsConnection.ReadMessage()
+		if err != nil {
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+				// server sent the "Close Handshake" message
+				log.Println("🔌 Server closed the connection.")
+				return
+			}
+
+			if websocket.IsCloseError(err, websocket.CloseAbnormalClosure) {
+				// server closed the WebSocket connection abruptly
+				log.Println("💔 Server closed the connection.")
+				return
+			}
+
+			log.Println("❌ Server closed the connection.")
+			return
+		}
+
+		// process the received message(s)
+		var receivedEvent event.Event
+		err = json.Unmarshal(payload, &receivedEvent)
+		if err != nil {
+			// this means the received message must be in plain text, so just log it
+			log.Println(string(payload))
+			continue
+		}
+
+		fmt.Printf("receivedEvent: %+v\n", receivedEvent)
+
+		// TODO: handle event specific logic
+	}
 }
 
 func getWebSocketEndpoint() url.URL {
