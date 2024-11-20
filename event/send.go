@@ -49,6 +49,20 @@ func SendMemberVotedEvent(wsConnection *websocket.Conn, ticketId string, vote st
 	sendMessage(wsConnection, beginVotingEvent)
 }
 
+func SendRevealVotesEvent(wsConnection *websocket.Conn, ticketId string) {
+	revealVotesEventData := RevealVotesEventData{
+		TicketID: ticketId,
+	}
+
+	revealVotesEventJsonData, _ := json.Marshal(revealVotesEventData)
+	beginVotingEvent := Event{
+		Type: "REVEAL_VOTES",
+		Data: json.RawMessage(revealVotesEventJsonData),
+	}
+
+	sendMessage(wsConnection, beginVotingEvent)
+}
+
 func sendMessage(wConnection *websocket.Conn, event Event) {
 	jsonMessage, err := json.Marshal(event)
 	if err != nil {

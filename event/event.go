@@ -53,3 +53,14 @@ type VotingCompletedEventData struct {
 	TicketID string `json:"ticket_id"`
 	Message  string `json:"message"`
 }
+
+// RevealVotesPromptEventData represents data specific to the "REVEAL_VOTES_PROMPT" event
+type RevealVotesPromptEventData struct {
+	TicketID string `json:"ticket_id"`
+	Message  string `json:"message"`
+}
+
+// RevealVotesEventData represents data specific to the "REVEAL_VOTES" event
+type RevealVotesEventData struct {
+	TicketID string `json:"ticket_id"`
+}

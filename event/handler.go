@@ -31,6 +31,7 @@ func SetupEventHandlers() {
 	eventHandlers["BEGIN_VOTING_PROMPT"] = BeginVotingPromptEventHandler
 	eventHandlers["ASK_FOR_VOTE"] = AskForVoteEventHandler
 	eventHandlers["VOTING_COMPLETED"] = VotingCompletedEventHandler
+	eventHandlers["REVEAL_VOTES_PROMPT"] = RevealVotesPromptEventHandler
 }
 
 func HandleEvent(wsConnection *websocket.Conn, event Event) error {
@@ -140,5 +141,24 @@ func VotingCompletedEventHandler(wsConnection *websocket.Conn, event Event) erro
 	// the "VOTING_COMPLETED" event message from the server will be plain text,
 	// hence, we will simply log it and use it as the user prompt text
 	log.Println(votingCompletedEventData.Message)
+	return nil
+}
+
+func RevealVotesPromptEventHandler(wsConnection *websocket.Conn, event Event) error {
+	var revealVotesPromptEventData RevealVotesPromptEventData
+	err := json.Unmarshal(event.Data, &revealVotesPromptEventData)
+	if err != nil {
+		log.Println("unable to handle REVEAL_VOTES_PROMPT event", err)
+		return nil
+	}
+
+	choice := prompt.StringInputPrompt(
+		"✨ Time to reveal the votes.\n\nEnter 'Y' to confirm:",
+	)
+	if choice != "Y" {
+		return fmt.Errorf("you chose not to reveal the votes")
+	}
+
+	SendRevealVotesEvent(wsConnection, revealVotesPromptEventData.TicketID)
 	return nil
 }
