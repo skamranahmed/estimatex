@@ -26,3 +26,13 @@ type RoomJoinUpdatesEventData struct {
 type RoomCapacityReachedEventData struct {
 	Message string `json:"message"`
 }
+
+// BeginVotingPromptEventData represents data specific to the "BEGIN_VOTING_PROMPT" event
+type BeginVotingPromptEventData struct {
+	Message string `json:"message"`
+}
+
+// BeginVotingEventData represents data specific to the "BEGIN_VOTING" event
+type BeginVotingEventData struct {
+	TicketID string `json:"ticket_id"`
+}

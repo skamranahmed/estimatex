@@ -57,7 +57,6 @@ func main() {
 
 	<-interrupt
 	log.Println("👋 Exiting...")
-	os.Exit(0)
 }
 
 func displayWelcomeMessage() {
@@ -117,17 +116,17 @@ func readMessages(wsConnection *websocket.Conn) {
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
 				// server sent the "Close Handshake" message
-				log.Println("🔌 Server closed the connection.")
+				log.Println("🔌 Server closed the connection. Exiting program...")
 				return
 			}
 
 			if websocket.IsCloseError(err, websocket.CloseAbnormalClosure) {
 				// server closed the WebSocket connection abruptly
-				log.Println("💔 Server closed the connection.")
+				log.Println("💔 Server closed the connection. Exiting program...")
 				return
 			}
 
-			log.Println("❌ Server closed the connection.")
+			log.Println("❌ Server closed the connection. Exiting program...")
 			return
 		}
 
@@ -143,7 +142,8 @@ func readMessages(wsConnection *websocket.Conn) {
 		// handle received event message
 		err = event.HandleEvent(wsConnection, receivedEvent)
 		if err != nil {
-			log.Printf("❗️ Error while handling the received event %v: %+v", receivedEvent.Type, err)
+			log.Printf("❗️ Error while handling the received event %v: %+v Exiting program...", receivedEvent.Type, err)
+			return
 		}
 	}
 }
@@ -219,5 +219,6 @@ func closeWebSockeConnection(wsConnection *websocket.Conn) {
 		// gracefully close the WebSocket connection by sending a "Close Handshake" message from the client
 		wsConnection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "Client closing connection"))
 		wsConnection.Close()
+		os.Exit(0)
 	}
 }

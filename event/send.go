@@ -20,6 +20,20 @@ func SendRoomJoinEvent(wsConnection *websocket.Conn, roomId string) {
 	sendMessage(wsConnection, roomJoiningEvent)
 }
 
+func SendBeginVotingEvent(wsConnection *websocket.Conn, ticketId string) {
+	beginVotingEventData := BeginVotingEventData{
+		TicketID: ticketId,
+	}
+
+	beginVotingEventJsonData, _ := json.Marshal(beginVotingEventData)
+	beginVotingEvent := Event{
+		Type: "BEGIN_VOTING",
+		Data: json.RawMessage(beginVotingEventJsonData),
+	}
+
+	sendMessage(wsConnection, beginVotingEvent)
+}
+
 func sendMessage(wConnection *websocket.Conn, event Event) {
 	jsonMessage, err := json.Marshal(event)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	logger "log"
 
 	"github.com/gorilla/websocket"
+	"github.com/skamranahmed/estimatex-client/prompt"
 )
 
 type EventHandler func(wsConnection *websocket.Conn, event Event) error
@@ -27,6 +28,7 @@ func SetupEventHandlers() {
 	eventHandlers["CREATE_ROOM"] = CreateRoomEventHandler
 	eventHandlers["ROOM_JOIN_UPDATES"] = RoomJoinUpdatesEventHandler
 	eventHandlers["ROOM_CAPACITY_REACHED"] = RoomCapacityReachedEventHandler
+	eventHandlers["BEGIN_VOTING_PROMPT"] = BeginVotingPromptEventHandler
 }
 
 func HandleEvent(wsConnection *websocket.Conn, event Event) error {
@@ -82,5 +84,26 @@ func RoomCapacityReachedEventHandler(wsConnection *websocket.Conn, event Event) 
 	// the "ROOM_CAPACITY_REACHED" event message from the server will be plain text,
 	// hence, we will simply log it
 	log.Println(roomCapacityReachedEventData.Message)
+	return nil
+}
+
+func BeginVotingPromptEventHandler(wsConnection *websocket.Conn, event Event) error {
+	var beginVotingPromptEventData BeginVotingPromptEventData
+	err := json.Unmarshal(event.Data, &beginVotingPromptEventData)
+	if err != nil {
+		log.Println("unable to handle BEGIN_VOTING_PROMPT event", err)
+		return nil
+	}
+
+	// the "BEGIN_VOTING_PROMPT" event message from the server will be plain text,
+	// hence, we will simply log it and use it as the user prompt text
+	messageToDisplay := fmt.Sprintf("> %s", beginVotingPromptEventData.Message)
+	ticketId := prompt.StringInputPrompt(messageToDisplay)
+
+	if ticketId == "" {
+		return fmt.Errorf("empty ticket id is not allowed.")
+	}
+
+	SendBeginVotingEvent(wsConnection, ticketId)
 	return nil
 }
