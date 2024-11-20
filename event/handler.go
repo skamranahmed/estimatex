@@ -30,6 +30,7 @@ func SetupEventHandlers() {
 	eventHandlers["ROOM_CAPACITY_REACHED"] = RoomCapacityReachedEventHandler
 	eventHandlers["BEGIN_VOTING_PROMPT"] = BeginVotingPromptEventHandler
 	eventHandlers["ASK_FOR_VOTE"] = AskForVoteEventHandler
+	eventHandlers["VOTING_COMPLETED"] = VotingCompletedEventHandler
 }
 
 func HandleEvent(wsConnection *websocket.Conn, event Event) error {
@@ -125,5 +126,19 @@ func AskForVoteEventHandler(wsConnection *websocket.Conn, event Event) error {
 	log.Printf("👍 You voted %v for the ticket id: %s\n", vote, askForVoteEventData.TicketID)
 
 	SendMemberVotedEvent(wsConnection, askForVoteEventData.TicketID, vote)
+	return nil
+}
+
+func VotingCompletedEventHandler(wsConnection *websocket.Conn, event Event) error {
+	var votingCompletedEventData VotingCompletedEventData
+	err := json.Unmarshal(event.Data, &votingCompletedEventData)
+	if err != nil {
+		log.Println("unable to handle VOTING_COMPLETED event", err)
+		return nil
+	}
+
+	// the "VOTING_COMPLETED" event message from the server will be plain text,
+	// hence, we will simply log it and use it as the user prompt text
+	log.Println(votingCompletedEventData.Message)
 	return nil
 }

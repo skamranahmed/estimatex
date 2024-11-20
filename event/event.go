@@ -47,3 +47,9 @@ type MemberVotedEventData struct {
 	TicketID string `json:"ticket_id"`
 	Vote     string `json:"vote"`
 }
+
+// VotingCompletedEventData represents data specific to the "VOTING_COMPLETED" event
+type VotingCompletedEventData struct {
+	TicketID string `json:"ticket_id"`
+	Message  string `json:"message"`
+}
