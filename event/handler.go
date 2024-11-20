@@ -2,35 +2,51 @@ package event
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/gorilla/websocket"
 )
 
-func SendRoomJoinEvent(wsConnection *websocket.Conn, roomId string) {
-	roomJoiningEventData := RoomJoinEventData{
-		RoomID: roomId,
-	}
+type EventHandler func(wsConnection *websocket.Conn, event Event) error
 
-	roomJoiningEventJsonData, _ := json.Marshal(roomJoiningEventData)
-	roomJoiningEvent := Event{
-		Type: "JOIN_ROOM",
-		Data: json.RawMessage(roomJoiningEventJsonData),
-	}
+var (
+	eventHandlers = make(map[string]EventHandler)
+)
 
-	sendMessage(wsConnection, roomJoiningEvent)
+func EventNotSupportedError(eventType string) error {
+	return fmt.Errorf("%s event type is not supported yet.", eventType)
 }
 
-func sendMessage(wConnection *websocket.Conn, event Event) {
-	jsonMessage, err := json.Marshal(event)
+// sets up event handlers to process various types of event messages received from the server
+func SetupEventHandlers() {
+	eventHandlers["CREATE_ROOM"] = CreateRoomEventHandler
+}
+
+func HandleEvent(wsConnection *websocket.Conn, event Event) error {
+	eventHandler, ok := eventHandlers[event.Type]
+	if ok {
+		err := eventHandler(wsConnection, event)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else {
+		return EventNotSupportedError(event.Type)
+	}
+}
+
+func CreateRoomEventHandler(wsConnection *websocket.Conn, event Event) error {
+	var roomCreationEventData CreateRoomEventData
+	err := json.Unmarshal(event.Data, &roomCreationEventData)
 	if err != nil {
-		log.Printf("unable to marshal message: %+v, error: %+v", event, err)
+		log.Println("unable to handle CREATE_ROOM event", err)
+		return nil
 	}
 
-	// send message to the server
-	err = wConnection.WriteMessage(websocket.TextMessage, []byte(jsonMessage))
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	// upon receiving the "CREATE_ROOM" event message from the server,
+	// we need to send the "JOIN_ROOM" event message to the server
+	SendRoomJoinEvent(wsConnection, roomCreationEventData.RoomID)
+
+	return nil
 }

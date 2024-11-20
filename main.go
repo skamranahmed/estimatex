@@ -38,6 +38,8 @@ func main() {
 		return
 	}
 
+	event.SetupEventHandlers()
+
 	wsConnection, err := connectToEstimateXWebSocketEndpoint(action)
 	if err != nil {
 		log.Println(err.Error())
@@ -138,9 +140,11 @@ func readMessages(wsConnection *websocket.Conn) {
 			continue
 		}
 
-		fmt.Printf("receivedEvent: %+v\n", receivedEvent)
-
-		// TODO: handle event specific logic
+		// handle received event message
+		err = event.HandleEvent(wsConnection, receivedEvent)
+		if err != nil {
+			log.Printf("❗️ Error while handling the received event %v: %+v", receivedEvent.Type, err)
+		}
 	}
 }
 

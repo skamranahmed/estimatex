@@ -7,6 +7,11 @@ type Event struct {
 	Data json.RawMessage `json:"data"`
 }
 
+// CreateRoomEventData represents data specific to the "CREATE_ROOM" event
+type CreateRoomEventData struct {
+	RoomID string `json:"room_id"`
+}
+
 // RoomJoinEventData represents data specific to the "JOIN_ROOM" event
 type RoomJoinEventData struct {
 	RoomID string `json:"room_id"`
