@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/olekukonko/tablewriter"
-	"github.com/skamranahmed/estimatex-client/prompt"
+	"github.com/skamranahmed/estimatex/prompt"
 )
 
 type EventHandler func(wsConnection *websocket.Conn, event Event) error

@@ -11,8 +11,8 @@ import (
 
 	"github.com/common-nighthawk/go-figure"
 	"github.com/gorilla/websocket"
-	"github.com/skamranahmed/estimatex-client/event"
-	"github.com/skamranahmed/estimatex-client/prompt"
+	"github.com/skamranahmed/estimatex/event"
+	"github.com/skamranahmed/estimatex/prompt"
 )
 
 // set this to true for development, keep it false for production

@@ -1,4 +1,4 @@
-module github.com/skamranahmed/estimatex-client
+module github.com/skamranahmed/estimatex
 
 go 1.23.2
 
