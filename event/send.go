@@ -13,7 +13,7 @@ func SendRoomJoinEvent(wsConnection *websocket.Conn, roomId string) {
 
 	roomJoiningEventJsonData, _ := json.Marshal(roomJoiningEventData)
 	roomJoiningEvent := Event{
-		Type: "JOIN_ROOM",
+		Type: string(EventJoinRoom),
 		Data: json.RawMessage(roomJoiningEventJsonData),
 	}
 
@@ -27,7 +27,7 @@ func SendBeginVotingEvent(wsConnection *websocket.Conn, ticketId string) {
 
 	beginVotingEventJsonData, _ := json.Marshal(beginVotingEventData)
 	beginVotingEvent := Event{
-		Type: "BEGIN_VOTING",
+		Type: string(EventBeginVoting),
 		Data: json.RawMessage(beginVotingEventJsonData),
 	}
 
@@ -42,7 +42,7 @@ func SendMemberVotedEvent(wsConnection *websocket.Conn, ticketId string, vote st
 
 	memberVotedEventJsonData, _ := json.Marshal(memberVotedEventData)
 	beginVotingEvent := Event{
-		Type: "MEMBER_VOTED",
+		Type: string(EventMemberVoted),
 		Data: json.RawMessage(memberVotedEventJsonData),
 	}
 
@@ -56,7 +56,7 @@ func SendRevealVotesEvent(wsConnection *websocket.Conn, ticketId string) {
 
 	revealVotesEventJsonData, _ := json.Marshal(revealVotesEventData)
 	beginVotingEvent := Event{
-		Type: "REVEAL_VOTES",
+		Type: string(EventRevealVotes),
 		Data: json.RawMessage(revealVotesEventJsonData),
 	}
 

@@ -19,7 +19,7 @@ type EventHandler func(wsConnection *websocket.Conn, event Event) error
 var (
 	log = logger.New(os.Stdout, "> ", 0) // 0 means no flags (no time, no date, etc.)
 
-	eventHandlers = make(map[string]EventHandler)
+	eventHandlers = make(map[EventType]EventHandler)
 )
 
 func EventNotSupportedError(eventType string) error {
@@ -28,19 +28,19 @@ func EventNotSupportedError(eventType string) error {
 
 // sets up event handlers to process various types of event messages received from the server
 func SetupEventHandlers() {
-	eventHandlers["CREATE_ROOM"] = CreateRoomEventHandler
-	eventHandlers["ROOM_JOIN_UPDATES"] = RoomJoinUpdatesEventHandler
-	eventHandlers["ROOM_CAPACITY_REACHED"] = RoomCapacityReachedEventHandler
-	eventHandlers["BEGIN_VOTING_PROMPT"] = BeginVotingPromptEventHandler
-	eventHandlers["ASK_FOR_VOTE"] = AskForVoteEventHandler
-	eventHandlers["VOTING_COMPLETED"] = VotingCompletedEventHandler
-	eventHandlers["REVEAL_VOTES_PROMPT"] = RevealVotesPromptEventHandler
-	eventHandlers["VOTES_REVEALED"] = VotesRevealedEventHandler
-	eventHandlers["AWAITING_ADMIN_VOTE_START"] = AwaitingAdminVoteStartEventHandler
+	eventHandlers[EventCreateRoom] = CreateRoomEventHandler
+	eventHandlers[EventJoinRoomUpdates] = RoomJoinUpdatesEventHandler
+	eventHandlers[EventRoomCapacityReached] = RoomCapacityReachedEventHandler
+	eventHandlers[EventBeginVotingPrompt] = BeginVotingPromptEventHandler
+	eventHandlers[EventAskForVote] = AskForVoteEventHandler
+	eventHandlers[EventVotingCompleted] = VotingCompletedEventHandler
+	eventHandlers[EventRevealVotesPrompt] = RevealVotesPromptEventHandler
+	eventHandlers[EventVotesRevealed] = VotesRevealedEventHandler
+	eventHandlers[EventAwaitingAdminVoteStart] = AwaitingAdminVoteStartEventHandler
 }
 
 func HandleEvent(wsConnection *websocket.Conn, event Event) error {
-	eventHandler, ok := eventHandlers[event.Type]
+	eventHandler, ok := eventHandlers[EventType(event.Type)]
 	if ok {
 		err := eventHandler(wsConnection, event)
 		if err != nil {
@@ -56,7 +56,7 @@ func CreateRoomEventHandler(wsConnection *websocket.Conn, event Event) error {
 	var roomCreationEventData CreateRoomEventData
 	err := json.Unmarshal(event.Data, &roomCreationEventData)
 	if err != nil {
-		log.Println("unable to handle CREATE_ROOM event", err)
+		log.Printf("unable to handle %s event %v\n", EventCreateRoom, err)
 		return nil
 	}
 
@@ -71,7 +71,7 @@ func RoomJoinUpdatesEventHandler(wsConnection *websocket.Conn, event Event) erro
 	var roomJoinUpdatesEventData RoomJoinUpdatesEventData
 	err := json.Unmarshal(event.Data, &roomJoinUpdatesEventData)
 	if err != nil {
-		log.Println("unable to handle ROOM_JOIN_UPDATES event", err)
+		log.Printf("unable to handle %s event %v\n", EventJoinRoomUpdates, err)
 		return nil
 	}
 
@@ -85,7 +85,7 @@ func RoomCapacityReachedEventHandler(wsConnection *websocket.Conn, event Event) 
 	var roomCapacityReachedEventData RoomCapacityReachedEventData
 	err := json.Unmarshal(event.Data, &roomCapacityReachedEventData)
 	if err != nil {
-		log.Println("unable to handle ROOM_CAPACITY_REACHED event", err)
+		log.Printf("unable to handle %s event %v\n", EventRoomCapacityReached, err)
 		return nil
 	}
 
@@ -99,7 +99,7 @@ func BeginVotingPromptEventHandler(wsConnection *websocket.Conn, event Event) er
 	var beginVotingPromptEventData BeginVotingPromptEventData
 	err := json.Unmarshal(event.Data, &beginVotingPromptEventData)
 	if err != nil {
-		log.Println("unable to handle BEGIN_VOTING_PROMPT event", err)
+		log.Printf("unable to handle %s event %v\n", EventBeginVotingPrompt, err)
 		return nil
 	}
 
@@ -120,7 +120,7 @@ func AskForVoteEventHandler(wsConnection *websocket.Conn, event Event) error {
 	var askForVoteEventData AskForVoteEventData
 	err := json.Unmarshal(event.Data, &askForVoteEventData)
 	if err != nil {
-		log.Println("unable to handle ASK_FOR_VOTE event", err)
+		log.Printf("unable to handle %s event %v\n", EventAskForVote, err)
 		return nil
 	}
 
@@ -139,7 +139,7 @@ func VotingCompletedEventHandler(wsConnection *websocket.Conn, event Event) erro
 	var votingCompletedEventData VotingCompletedEventData
 	err := json.Unmarshal(event.Data, &votingCompletedEventData)
 	if err != nil {
-		log.Println("unable to handle VOTING_COMPLETED event", err)
+		log.Printf("unable to handle %s event %v\n", EventVotingCompleted, err)
 		return nil
 	}
 
@@ -153,7 +153,7 @@ func RevealVotesPromptEventHandler(wsConnection *websocket.Conn, event Event) er
 	var revealVotesPromptEventData RevealVotesPromptEventData
 	err := json.Unmarshal(event.Data, &revealVotesPromptEventData)
 	if err != nil {
-		log.Println("unable to handle REVEAL_VOTES_PROMPT event", err)
+		log.Printf("unable to handle %s event %v\n", EventRevealVotes, err)
 		return nil
 	}
 
@@ -172,7 +172,7 @@ func VotesRevealedEventHandler(serverWsConnection *websocket.Conn, event Event) 
 	var votesRevealedEventData VotesRevealedEventData
 	err := json.Unmarshal(event.Data, &votesRevealedEventData)
 	if err != nil {
-		log.Println("unable to handle VOTES_REVEALED event", err)
+		log.Printf("unable to handle %s event %v\n", EventVotesRevealed, err)
 		return nil
 	}
 
@@ -188,7 +188,7 @@ func AwaitingAdminVoteStartEventHandler(serverWsConnection *websocket.Conn, even
 	var awaitingAdminVoteStartEventData AwaitingAdminVoteStartEventData
 	err := json.Unmarshal(event.Data, &awaitingAdminVoteStartEventData)
 	if err != nil {
-		log.Println("unable to handle AWAITING_ADMIN_VOTE_START event", err)
+		log.Printf("unable to handle %s event %v\n", EventAwaitingAdminVoteStart, err)
 		return nil
 	}
 

@@ -7,6 +7,27 @@ type Event struct {
 	Data json.RawMessage `json:"data"`
 }
 
+type EventType string
+
+const (
+	// Incoming Events
+	EventCreateRoom             EventType = "CREATE_ROOM"
+	EventJoinRoomUpdates        EventType = "ROOM_JOIN_UPDATES"
+	EventRoomCapacityReached    EventType = "ROOM_CAPACITY_REACHED"
+	EventBeginVotingPrompt      EventType = "BEGIN_VOTING_PROMPT"
+	EventAskForVote             EventType = "ASK_FOR_VOTE"
+	EventVotingCompleted        EventType = "VOTING_COMPLETED"
+	EventRevealVotesPrompt      EventType = "REVEAL_VOTES_PROMPT"
+	EventVotesRevealed          EventType = "VOTES_REVEALED"
+	EventAwaitingAdminVoteStart EventType = "AWAITING_ADMIN_VOTE_START"
+
+	// Outgoing Events
+	EventJoinRoom    EventType = "JOIN_ROOM"
+	EventBeginVoting EventType = "BEGIN_VOTING"
+	EventMemberVoted EventType = "MEMBER_VOTED"
+	EventRevealVotes EventType = "REVEAL_VOTES"
+)
+
 type Vote struct {
 	Value      string
 	MemberID   string
