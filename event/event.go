@@ -76,3 +76,8 @@ type VotesRevealedEventData struct {
 	TicketID            string          `json:"ticket_id"`
 	ClientVoteChoiceMap map[string]Vote `json:"client_vote_choice_map"`
 }
+
+// AwaitingAdminVoteStartEventData represents data specific to the "AWAITING_ADMIN_VOTE_START" event
+type AwaitingAdminVoteStartEventData struct {
+	Message string `json:"message"`
+}

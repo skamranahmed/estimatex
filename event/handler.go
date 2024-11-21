@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 
 	logger "log"
 
@@ -35,6 +36,7 @@ func SetupEventHandlers() {
 	eventHandlers["VOTING_COMPLETED"] = VotingCompletedEventHandler
 	eventHandlers["REVEAL_VOTES_PROMPT"] = RevealVotesPromptEventHandler
 	eventHandlers["VOTES_REVEALED"] = VotesRevealedEventHandler
+	eventHandlers["AWAITING_ADMIN_VOTE_START"] = AwaitingAdminVoteStartEventHandler
 }
 
 func HandleEvent(wsConnection *websocket.Conn, event Event) error {
@@ -142,7 +144,7 @@ func VotingCompletedEventHandler(wsConnection *websocket.Conn, event Event) erro
 	}
 
 	// the "VOTING_COMPLETED" event message from the server will be plain text,
-	// hence, we will simply log it and use it as the user prompt text
+	// hence, we will simply log it
 	log.Println(votingCompletedEventData.Message)
 	return nil
 }
@@ -158,7 +160,7 @@ func RevealVotesPromptEventHandler(wsConnection *websocket.Conn, event Event) er
 	choice := prompt.StringInputPrompt(
 		"✨ Time to reveal the votes.\n\nEnter 'Y' to confirm:",
 	)
-	if choice != "Y" {
+	if strings.ToUpper(choice) != "Y" {
 		return fmt.Errorf("you chose not to reveal the votes")
 	}
 
@@ -175,10 +177,24 @@ func VotesRevealedEventHandler(serverWsConnection *websocket.Conn, event Event) 
 	}
 
 	// the "VOTES_REVEALED" event message from the server will be plain text,
-	// hence, we will simply log it and use it as the user prompt text
+	// hence, we will simply log it
 	log.Printf("👇 Votes for the ticket id: %v", votesRevealedEventData.TicketID)
 
 	renderVotes(votesRevealedEventData.ClientVoteChoiceMap)
+	return nil
+}
+
+func AwaitingAdminVoteStartEventHandler(serverWsConnection *websocket.Conn, event Event) error {
+	var awaitingAdminVoteStartEventData AwaitingAdminVoteStartEventData
+	err := json.Unmarshal(event.Data, &awaitingAdminVoteStartEventData)
+	if err != nil {
+		log.Println("unable to handle AWAITING_ADMIN_VOTE_START event", err)
+		return nil
+	}
+
+	// the "AWAITING_ADMIN_VOTE_START" event message from the server will be plain text,
+	// hence, we will simply log it
+	log.Println(awaitingAdminVoteStartEventData.Message)
 	return nil
 }
 
