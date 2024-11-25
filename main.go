@@ -16,7 +16,7 @@ import (
 )
 
 // set this to true for development, keep it false for production
-const isDevelopment = true
+const isDevelopment = false
 
 var (
 	log = logger.New(os.Stdout, "> ", 0) // 0 means no flags (no time, no date, etc.)
