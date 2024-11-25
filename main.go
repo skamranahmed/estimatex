@@ -160,7 +160,7 @@ func getWebSocketEndpoint() url.URL {
 
 	return url.URL{
 		Scheme: "wss", // use websocket secure protocol in production
-		Host:   "",    // TODO: to be filled when I will get the production URL of EstimateX server after deployment
+		Host:   "estimatex-server-production.up.railway.app",
 		Path:   path,
 	}
 }
