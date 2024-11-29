@@ -99,9 +99,5 @@ By default, the application runs in production mode connecting to the hosted ser
 2. Ensure you have the [estimatex-server](https://github.com/skamranahmed/estimatex-server) running locally
 3. Run using `make run`
 
-### 📝 Todo 
-
-- [ ] Add validation for vote values
-
 ### 📝 License
 This project is licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
