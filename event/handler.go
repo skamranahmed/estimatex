@@ -129,6 +129,11 @@ func AskForVoteEventHandler(wsConnection *websocket.Conn, event Event) error {
 	)
 	vote := prompt.StringInputPrompt(askForVoteMessage)
 
+	validVotes := map[string]bool{"1": true, "2": true, "3": true, "5": true, "8": true, "13": true, "21": true}
+	if !validVotes[vote] {
+		return fmt.Errorf("invalid vote value: %s. Please choose from 1, 2, 3, 5, 8, 13, or 21.", vote)
+	}
+
 	log.Printf("👍 You voted %v for the ticket id: %s\n", vote, askForVoteEventData.TicketID)
 
 	SendMemberVotedEvent(wsConnection, askForVoteEventData.TicketID, vote)
